@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project Genesis: God Sim</title>
+    <style>
+        :root {
+            --bg-color: #1a0b2e;
+            --panel-color: #2d1b4e;
+            --highlight: #764ba2;
+            --text: #ffffff;
+            --bad: #ff4757;
+            --good: #2ed573;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* HUD - Heads Up Display */
+        .hud {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            padding: 20px;
+            background-color: rgba(0,0,0,0.3);
+            border-bottom: 2px solid var(--highlight);
+        }
+
+        .stat-box { text-align: center; }
+        .stat-val { font-size: 1.5rem; font-weight: bold; }
+        .stat-label { font-size: 0.8rem; opacity: 0.7; }
+
+        /* The World Grid */
+        #world-container {
+            margin: 20px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            padding: 10px;
+            background: var(--panel-color);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(118, 75, 162, 0.3);
+        }
+
+        .tile {
+            width: 50px;
+            height: 50px;
+            font-size: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255,255,255,0.05);
+            border-radius: 5px;
+            cursor: default;
+            transition: all 0.3s;
+        }
+
+        /* Event Modal */
+        #event-panel {
+            position: absolute;
+            bottom: 20px;
+            width: 90%;
+            max-width: 600px;
+            background-color: var(--panel-color);
+            border: 2px solid var(--highlight);
+            padding: 20px;
+            border-radius: 10px;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        #event-text { font-size: 1.1rem; margin-bottom: 15px; }
+        
+        .btn-group { display: flex; gap: 10px; }
+        
+        button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .btn-a { background-color: var(--highlight); color: white; }
+        .btn-b { background-color: #444; color: white; }
+        button:hover { opacity: 0.9; transform: scale(1.02); }
+
+        /* Log */
+        #log {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            margin-top: 10px;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hud">
+        <div class="stat-box">
+            <div class="stat-val" id="pop-display">2</div>
+            <div class="stat-label">POPULATION</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-val" id="health-display">100%</div>
+            <div class="stat-label">WORLD HEALTH</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-val" id="era-display">Primordial</div>
+            <div class="stat-label">CURRENT ERA</div>
+        </div>
+    </div>
+
+    <div id="world-container">
+        </div>
+
+    <div id="log">Waiting for life to evolve...</div>
+
+    <div id="event-panel">
+        <h3 style="margin-top:0">Decision Required</h3>
+        <p id="event-text">Example event text...</p>
+        <div class="btn-group">
+            <button class="btn-a" id="choice-a" onclick="makeChoice(0)">Option A</button>
+            <button class="btn-b" id="choice-b" onclick="makeChoice(1)">Option B</button>
+        </div>
+    </div>
+
+    <script>
+        // --- GAME STATE ---
+        let population = 2;
+        let health = 100;
+        let eraIndex = 0;
+        let isEventActive = false;
+        
+        const eras = ["Primordial", "Stone Age", "Bronze Age", "Iron Age", "Cyber Age"];
+        const grid = document.getElementById('world-container');
+        const eventPanel = document.getElementById('event-panel');
+        
+        // --- WORLD GENERATION ---
+        // 0=Water, 1=Forest, 2=Village, 3=City, 4=Dead
+        let tiles = Array(25).fill(0).map(() => Math.random() > 0.7 ? 1 : 0);
+
+        function renderGrid() {
+            grid.innerHTML = '';
+            tiles.forEach(t => {
+                let div = document.createElement('div');
+                div.className = 'tile';
+                // Render Emojis based on tile type
+                if(t === 0) div.innerText = '🌊';
+                if(t === 1) div.innerText = '🌲';
+                if(t === 2) div.innerText = '🛖';
+                if(t === 3) div.innerText = '🏙️';
+                if(t === 4) div.innerText = '💀'; // Wasteland
+                grid.appendChild(div);
+            });
+        }
+
+        // --- EVENTS DATA ---
+        // I have generated these scenarios for you
+        const events = [
+            {
+                text: "A strange fruit is discovered. It tastes sweet but looks dangerous.",
+                a: { text: "Eat it (Growth)", pop: 5, hp: -5, msg: "Tasty but mildly toxic." },
+                b: { text: "Destroy it (Safety)", pop: 0, hp: 2, msg: "Better safe than sorry." }
+            },
+            {
+                text: "A neighboring tribe offers peace in exchange for resources.",
+                a: { text: "Accept Peace", pop: 10, hp: 5, msg: "The tribes merge!" },
+                b: { text: "Wage War", pop: -5, hp: -10, msg: "Victory, but at a cost." }
+            },
+            {
+                text: "A plague spreads through the lowlands.",
+                a: { text: "Divine Healing", pop: 0, hp: 10, msg: "You cleansed the sickness." },
+                b: { text: "Let the weak fall", pop: -20, hp: -5, msg: "Only the strong survive." }
+            },
+            {
+                text: "Your people want to invent a new tool.",
+                a: { text: "Weaponry", pop: -5, hp: -10, msg: "They are stronger, but violent." },
+                b: { text: "Farming", pop: 15, hp: 5, msg: "Food surplus leads to a boom!" }
+            }
+        ];
+
+        let currentEvent = null;
+
+        // --- GAME LOOP ---
+        setInterval(() => {
+            if (isEventActive) return; // Pause if waiting for player
+
+            // Passive Growth
+            if (health > 50) population += Math.floor(Math.random() * 3);
+            if (health < 30) population -= Math.floor(Math.random() * 3);
+            
+            // Bounds check
+            if (population < 0) population = 0;
+            if (health > 100) health = 100;
+            if (health <= 0) gameOver();
+
+            updateDisplay();
+            updateWorldVisuals();
+            checkEvolution();
+
+            // Random Chance for Event (10% chance per tick)
+            if (Math.random() < 0.1) triggerEvent();
+
+        }, 1000); // Runs every second
+
+        function updateDisplay() {
+            document.getElementById('pop-display').innerText = population;
+            document.getElementById('health-display').innerText = health + '%';
+            document.getElementById('era-display').innerText = eras[eraIndex];
+        }
+
+        function updateWorldVisuals() {
+            // Logic to update tiles based on population
+            let settlements = Math.floor(population / 20);
+            
+            // Reset world slightly
+            tiles = tiles.map(t => (t > 1 && Math.random() > 0.9) ? 1 : t); 
+
+            // Place settlements randomly
+            for(let i=0; i<settlements; i++) {
+                let rng = Math.floor(Math.random() * 25);
+                if(tiles[rng] <= 1) tiles[rng] = eraIndex >= 3 ? 3 : 2;
+            }
+            renderGrid();
+        }
+
+        function checkEvolution() {
+            // Evolve based on population milestones
+            if (population > 50 && eraIndex === 0) evolve(1);
+            if (population > 150 && eraIndex === 1) evolve(2);
+            if (population > 300 && eraIndex === 2) evolve(3);
+            if (population > 600 && eraIndex === 3) evolve(4);
+        }
+
+        function evolve(level) {
+            eraIndex = level;
+            document.getElementById('log').innerText = `EVOLUTION: Welcome to the ${eras[level]}!`;
+            health += 20; // Bonus health on evolution
+        }
+
+        function triggerEvent() {
+            isEventActive = true;
+            currentEvent = events[Math.floor(Math.random() * events.length)];
+            
+            document.getElementById('event-text').innerText = currentEvent.text;
+            document.getElementById('choice-a').innerText = currentEvent.a.text;
+            document.getElementById('choice-b').innerText = currentEvent.b.text;
+            
+            eventPanel.style.display = 'flex';
+        }
+
+        function makeChoice(optionIndex) {
+            let choice = optionIndex === 0 ? currentEvent.a : currentEvent.b;
+            
+            // Apply Effects
+            population += choice.pop;
+            health += choice.hp;
+            document.getElementById('log').innerText = choice.msg;
+
+            // Hide Panel
+            eventPanel.style.display = 'none';
+            isEventActive = false;
+            updateDisplay();
+        }
+
+        function gameOver() {
+            alert("The world has perished. Refresh to restart.");
+            health = 100;
+            population = 2;
+            eraIndex = 0;
+        }
+
+        // Initial Render
+        renderGrid();
+
+    </script>
+</body>
+</html>
