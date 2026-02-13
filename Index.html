@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My GitHub Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #222;
+            color: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            user-select: none; /* Prevents highlighting text while clicking */
+        }
+        
+        #game-area {
+            width: 300px;
+            height: 300px;
+            border: 2px solid #fff;
+            position: relative;
+            background-color: #333;
+            border-radius: 10px;
+            cursor: crosshair;
+        }
+
+        #target {
+            width: 30px;
+            height: 30px;
+            background-color: #ff4757;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.1s ease;
+        }
+
+        h1 { margin-bottom: 10px; }
+        p { font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <h1>Catch the Dot!</h1>
+    <p>Score: <span id="score">0</span></p>
+    
+    <div id="game-area">
+        <div id="target" onclick="moveTarget()"></div>
+    </div>
+
+    <script>
+        let score = 0;
+        const gameArea = document.getElementById('game-area');
+        const target = document.getElementById('target');
+        const scoreDisplay = document.getElementById('score');
+
+        function moveTarget() {
+            // Increase score
+            score++;
+            scoreDisplay.innerText = score;
+
+            // Calculate random position
+            // We subtract 30 (the size of the dot) so it doesn't go outside the box
+            const x = Math.floor(Math.random() * (300 - 30));
+            const y = Math.floor(Math.random() * (300 - 30));
+
+            // Apply new position
+            target.style.left = x + 'px';
+            target.style.top = y + 'px';
+            target.style.transform = "none"; // Reset initial center alignment
+            
+            // Change color randomly for fun
+            const colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502'];
+            target.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        }
+    </script>
+
+</body>
+</html>
