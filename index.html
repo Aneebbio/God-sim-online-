@@ -2,53 +2,94 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>God Core: Modular</title>
+    <title>God Core: Satellite Era</title>
     <style>
-        :root { --bg: #050508; --accent: #00d2d3; --rare: #a55eea; --danger: #ff4757; }
-        body { font-family: sans-serif; background: var(--bg); color: #e0e0e0; margin: 0; overflow: hidden; }
-        .screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+        :root { --bg: #020205; --accent: #00d2d3; --fungus: #78e08f; --danger: #eb4d4b; }
+        body { font-family: 'Courier New', monospace; background: var(--bg); color: #fff; margin: 0; overflow: hidden; }
+
+        /* SATELLITE SCANLINES EFFECT */
+        body::after {
+            content: " "; position: fixed; inset: 0; 
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
+        }
+
+        .screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; }
         .hidden { display: none !important; }
-        .card { background: #111; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; }
-        .buy-btn { background: var(--accent); border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; }
-        .buy-btn:disabled { background: #333; }
-        #grid-container { display: grid; grid-template-columns: repeat(3, 140px); gap: 10px; transform: rotateX(45deg) rotateZ(-45deg); }
-        .tile { width: 140px; height: 140px; background: #222; border-radius: 5px; }
-        .tile.player { background: var(--accent); box-shadow: 0 0 15px var(--accent); }
-        .tile.rival { background: var(--danger); }
-        #sidebar { width: 300px; background: #0a0a0f; height: 100vh; padding: 20px; border-left: 1px solid #222; }
+
+        /* GRID: TOP-DOWN SATELLITE */
+        #grid-container { 
+            display: grid; grid-template-columns: repeat(3, 160px); gap: 10px;
+            padding: 20px; border: 1px solid rgba(0, 210, 211, 0.3); background: rgba(0,0,0,0.5);
+        }
+
+        .tile { 
+            width: 160px; height: 160px; border: 1px solid rgba(255,255,255,0.1); 
+            background-size: cover; background-position: center; position: relative;
+            transition: 0.5s filter;
+        }
+
+        /* Fungal Blight Styling */
+        .tile.rival { filter: sepia(1) hue-rotate(60deg) saturate(2); }
+        .tile.rival::after { 
+            content: "🍄"; position: absolute; inset: 0; display: flex; 
+            align-items: center; justify-content: center; font-size: 3rem; 
+            background: rgba(43, 84, 44, 0.4); 
+        }
+
+        .tile.player { border: 2px solid var(--accent); box-shadow: inset 0 0 15px var(--accent); }
+        .tile.player::before { content: "🛰"; position: absolute; top: 5px; right: 5px; }
+
+        /* SIDEBAR HUD */
+        #sidebar { width: 350px; background: #08080c; border-left: 2px solid #1a1a1f; padding: 25px; z-index: 20; }
+        .stat-card { background: #000; border: 1px solid #222; padding: 10px; margin-bottom: 10px; }
+        .stat-card small { color: var(--accent); font-size: 0.7rem; }
+        .stat-card div { font-size: 1.5rem; font-weight: bold; }
+
+        .buy-btn { 
+            background: var(--accent); color: #000; border: none; padding: 10px; 
+            font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px;
+        }
+        .buy-btn:disabled { background: #222; color: #555; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
     <div id="menu-screen" class="screen">
-        <div style="width: 80%; max-width: 900px; display: flex; gap: 40px;">
-            <div style="flex:1">
-                <h1>GOD CORE</h1>
-                <h2 id="meta-isotopes" style="color:var(--rare)">0 ⚛</h2>
-                <button class="buy-btn" style="width:100%; padding:20px" onclick="startGame()">INITIATE</button>
-                <div id="addon-list" style="margin-top:20px"></div>
+        <div style="width: 85%; display: flex; gap: 50px;">
+            <div style="flex: 1;">
+                <h1 style="font-size: 3rem; text-shadow: 0 0 10px var(--accent);">ERA_SURVEYOR.exe</h1>
+                <div style="font-size: 2rem; color: var(--accent);" id="meta-isotopes">0 ⚛</div>
+                <button class="buy-btn" style="padding: 20px;" onclick="startGame()">INITIATE LINK</button>
+                <div id="addon-list" style="margin-top: 20px;"></div>
             </div>
-            <div id="skill-tree-content" style="flex:1"></div>
+            <div id="skill-tree-content" style="flex: 1; background: rgba(255,255,255,0.05); padding: 20px;"></div>
         </div>
     </div>
 
     <div id="game-screen" class="screen hidden">
-        <div id="stabilize-ui" class="screen hidden" style="background:rgba(255,0,0,0.5); z-index:1000">
-            <button class="buy-btn" style="padding:40px; font-size:2rem" onclick="stabilize()">STABILIZE CORE!</button>
+        <div id="stabilize-ui" class="screen hidden" style="background: rgba(255,0,0,0.4); z-index: 100;">
+            <button class="buy-btn" style="width: 300px; height: 100px; font-size: 1.5rem;" onclick="stabilize()">STABILIZE SIGNAL</button>
         </div>
-        <div style="flex:1; display:flex; justify-content:center; align-items:center;">
-            <button onclick="nav(-1)">◂</button>
+
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+            <h2 id="era-name" style="letter-spacing: 5px;">ERA: PANGEA</h2>
             <div id="grid-container"></div>
-            <button onclick="nav(1)">▸</button>
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button class="buy-btn" onclick="nav(-1)">◄ PREV ERA</button>
+                <button class="buy-btn" onclick="nav(1)">NEXT ERA ►</button>
+            </div>
         </div>
+
         <div id="sidebar">
-            <h1 id="ui-year">30Y</h1>
-            <p id="ui-pop">Pop: 10</p>
-            <div id="event-log" style="height:300px; overflow:hidden;"></div>
-            <button class="buy-btn" style="background:var(--danger); width:100%; color:white" onclick="smite()">SMITE (50 F)</button>
+            <div class="stat-card"><small>CHRONOLOGY</small><div id="ui-year">30</div></div>
+            <div class="stat-card"><small>POPULATION</small><div id="ui-pop">0</div></div>
+            <div class="stat-card"><small>DIVINE FAITH</small><div id="ui-faith">0</div></div>
+            <div id="event-log" style="height: 300px; overflow: hidden; font-size: 0.8rem; border-top: 1px solid #222; padding-top: 10px;"></div>
+            <button class="buy-btn" style="background: var(--danger); color: #fff;" onclick="smite()">PURGE FUNGAL BLIGHT (50 F)</button>
         </div>
     </div>
 
     <script type="module" src="engine.js"></script>
 </body>
-</html>
+                </html>
