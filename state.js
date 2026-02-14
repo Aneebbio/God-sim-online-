@@ -1,23 +1,16 @@
-/* state.js - Game Memory */
-export let meta = JSON.parse(localStorage.getItem('god_sim_v8')) || {
+export let meta = JSON.parse(localStorage.getItem('god_sim_v9')) || {
     isotopes: 0,
     levels: { fishing: 0, mining: 0, agri: 0, max_year: 0 },
     addons: [],
     addonCount: 0
 };
 
-export const saveMeta = () => {
-    localStorage.setItem('god_sim_v8', JSON.stringify(meta));
-};
+export const saveMeta = () => localStorage.setItem('god_sim_v9', JSON.stringify(meta));
 
-export const SKILLS = [
-    { id: 'fishing', name: 'Fishing', base: 5 },
-    { id: 'mining', name: 'Mining', base: 8 },
-    { id: 'agri', name: 'Agriculture', base: 12 },
-    { id: 'max_year', name: 'Chronos', base: 20 }
-];
-
-export const ADDONS = [
-    { id: 'auto_smite', name: 'Auto-Smite', desc: 'Destroys rivals every 5s.' },
-    { id: 'luck_core', name: 'Luck Core', desc: 'Double Isotope drop rate.' }
+export const ERAS = [
+    { name: "Pangea", url: "https://images.unsplash.com/photo-1581084324492-c8076f130f86?auto=format&fit=crop&w=500" },
+    { name: "Ice Age", url: "https://images.unsplash.com/photo-1516934023933-90d2e5f564f8?auto=format&fit=crop&w=500" },
+    { name: "Modernity", url: "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=500" },
+    { name: "Solar Flare", url: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=500" },
+    { name: "Dead Earth", url: "https://images.unsplash.com/photo-1502134249126-9f3755a50d78?auto=format&fit=crop&w=500" }
 ];
