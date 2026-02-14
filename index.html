@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GOD CORE 1.9.0 - FINAL</title>
+    <style>
+        :root { --bg: #010105; --accent: #00d2d3; }
+        body { font-family: 'Courier New', monospace; background: var(--bg); color: #fff; margin: 0; overflow: hidden; }
+        .screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .hidden { display: none !important; }
+        #grid-container { display: grid; grid-template-columns: repeat(3, 160px); gap: 10px; }
+        .tile { width: 160px; height: 160px; background-size: cover; border: 1px solid #222; }
+        .tile.player { border: 2px solid var(--accent); box-shadow: inset 0 0 20px var(--accent); }
+        .buy-btn { background: var(--accent); color: #000; border: none; padding: 10px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
+        
+        #white-out { background: #fff; color: #000; z-index: 9999; display: flex; flex-direction: column; padding: 50px; }
+        #final-msg { font-size: 1.5rem; white-space: pre-wrap; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="white-out" class="screen hidden">
+        <div id="final-msg"></div>
+    </div>
+
+    <div id="menu-screen" class="screen">
+        <div style="width: 80%; display: flex; gap: 40px;">
+            <div style="flex: 1;">
+                <h1 style="color:var(--accent)">GOD_CORE 1.9.0</h1>
+                <h2 id="meta-isotopes">0 ⚛</h2>
+                <button class="buy-btn" onclick="startGame()">INITIATE LINK</button>
+            </div>
+            <div id="skill-tree" style="flex: 1;"></div>
+        </div>
+    </div>
+
+    <div id="game-screen" class="screen hidden">
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+            <h2 id="era-name">ARCHEAN EARTH</h2>
+            <div id="grid-container"></div>
+            <div style="margin-top: 20px;">
+                <button class="buy-btn" style="width: 50px;" onclick="nav(-1)">◄</button>
+                <button class="buy-btn" style="width: 50px;" onclick="nav(1)">►</button>
+            </div>
+        </div>
+        <div style="width: 250px; padding: 20px; background: #050508;">
+            <small>BIO_MASS</small><div id="ui-pop" style="font-size: 1.5rem;">0</div>
+            <small>FAITH</small><div id="ui-faith" style="font-size: 1.5rem;">0</div>
+        </div>
+    </div>
+
+    <script type="module" src="engine.js"></script>
+</body>
+</html>
