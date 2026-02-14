@@ -1,0 +1,47 @@
+export const events = [
+    // --- LOCAL EVENTS (Current Sector) ---
+    { 
+        id: "local_oasis", 
+        scope: "local",
+        text: "A hidden oasis discovered! Life blooms in this sector.", 
+        impact: { pop: 50, tilesToPlayer: 2 },
+        style: "border-left-color: #00d2d3" 
+    },
+    { 
+        id: "local_storm", 
+        scope: "local",
+        text: "A localized hyper-storm is ravaging the infrastructure.", 
+        impact: { pop: -40, tilesToEmpty: 2 },
+        style: "border-left-color: #ff4757" 
+    },
+    { 
+        id: "local_volcano", 
+        scope: "local",
+        text: "Volcanic eruption! The sector is scorched but rich in isotopes.", 
+        impact: { pop: -60, isotopes: 3, tilesToRival: 1 }, 
+        style: "border-left-color: #e67e22" 
+    },
+
+    // --- GLOBAL EVENTS (Entire Planet) ---
+    { 
+        id: "moon_vitality", 
+        scope: "global",
+        text: "GLOBAL: The Moon of Vitality rises. All sectors flourish.", 
+        impact: { moon: "vitality", pop: 60 },
+        style: "border-left-color: #2ecc71" 
+    },
+    { 
+        id: "moon_luck", 
+        scope: "global",
+        text: "GLOBAL: The Moon of Luck rises. Isotopes are easier to find.", 
+        impact: { moon: "luck", isotopes: 1 },
+        style: "border-left-color: #f1c40f" 
+    },
+    { 
+        id: "solar_flare", 
+        scope: "global",
+        text: "GLOBAL: Solar flare! Satellite data scrambled, but energy spikes.", 
+        impact: { faith: 40, isotopes: 1 },
+        style: "border-left-color: #e74c3c" 
+    }
+];
