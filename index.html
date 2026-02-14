@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>God Core: Modular</title>
+    <style>
+        :root { --bg: #050508; --accent: #00d2d3; --rare: #a55eea; --danger: #ff4757; }
+        body { font-family: sans-serif; background: var(--bg); color: #e0e0e0; margin: 0; overflow: hidden; }
+        .screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .hidden { display: none !important; }
+        .card { background: #111; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .buy-btn { background: var(--accent); border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; }
+        .buy-btn:disabled { background: #333; }
+        #grid-container { display: grid; grid-template-columns: repeat(3, 140px); gap: 10px; transform: rotateX(45deg) rotateZ(-45deg); }
+        .tile { width: 140px; height: 140px; background: #222; border-radius: 5px; }
+        .tile.player { background: var(--accent); box-shadow: 0 0 15px var(--accent); }
+        .tile.rival { background: var(--danger); }
+        #sidebar { width: 300px; background: #0a0a0f; height: 100vh; padding: 20px; border-left: 1px solid #222; }
+    </style>
+</head>
+<body>
+
+    <div id="menu-screen" class="screen">
+        <div style="width: 80%; max-width: 900px; display: flex; gap: 40px;">
+            <div style="flex:1">
+                <h1>GOD CORE</h1>
+                <h2 id="meta-isotopes" style="color:var(--rare)">0 ⚛</h2>
+                <button class="buy-btn" style="width:100%; padding:20px" onclick="startGame()">INITIATE</button>
+                <div id="addon-list" style="margin-top:20px"></div>
+            </div>
+            <div id="skill-tree-content" style="flex:1"></div>
+        </div>
+    </div>
+
+    <div id="game-screen" class="screen hidden">
+        <div id="stabilize-ui" class="screen hidden" style="background:rgba(255,0,0,0.5); z-index:1000">
+            <button class="buy-btn" style="padding:40px; font-size:2rem" onclick="stabilize()">STABILIZE CORE!</button>
+        </div>
+        <div style="flex:1; display:flex; justify-content:center; align-items:center;">
+            <button onclick="nav(-1)">◂</button>
+            <div id="grid-container"></div>
+            <button onclick="nav(1)">▸</button>
+        </div>
+        <div id="sidebar">
+            <h1 id="ui-year">30Y</h1>
+            <p id="ui-pop">Pop: 10</p>
+            <div id="event-log" style="height:300px; overflow:hidden;"></div>
+            <button class="buy-btn" style="background:var(--danger); width:100%; color:white" onclick="smite()">SMITE (50 F)</button>
+        </div>
+    </div>
+
+    <script type="module" src="engine.js"></script>
+</body>
+</html>
