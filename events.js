@@ -1,51 +1,29 @@
-/* events.js - The Story Database */
-
 export const events = [
-    // --- EARLY ERA EVENTS ---
+    // --- EARLY GAME ---
     {
-        text: "A strange glowing monolith appears in the valley.",
+        text: "A monolith appears. It hums with energy.",
         reqYear: 0,
-        a: { txt: "Worship it", faith: 30, pop: 0, hp: -5, msg: "The object radiates power." },
-        b: { txt: "Study it", faith: 0, pop: 5, hp: 0, msg: "Knowledge gained." }
+        a: { txt: "Touch it", faith: 10, pop: 5, msg: "Your people feel energized." },
+        b: { txt: "Destroy it", isotopes: 1, pop: 0, msg: "You found a raw Isotope inside!" }
     },
     {
-        text: "A neighboring tribe asks for food.",
-        reqYear: 0,
-        a: { txt: "Share Food", faith: 10, pop: -5, hp: 5, msg: "They joined your tribe." },
-        b: { txt: "Drive them away", faith: -5, pop: 0, hp: -5, msg: "Conflict breeds strength." }
-    },
-    {
-        text: "A plague of locusts descends!",
-        reqYear: 0,
-        a: { txt: "Pray for wind", faith: -10, pop: 0, hp: 10, msg: " The wind cleared the sky." },
-        b: { txt: "Eat the locusts", faith: 0, pop: 10, hp: -10, msg: "Gross, but nutritious." }
+        text: "The Red Swarm is seen on the horizon.",
+        reqYear: 10,
+        a: { txt: "Prepare Defenses", faith: -20, pop: 0, msg: "The people are ready." },
+        b: { txt: "Ignore", faith: 0, pop: -10, msg: "They picked off the stragglers." }
     },
 
-    // --- MIDDLE ERA EVENTS (After Year 20) ---
+    // --- MID GAME ---
     {
-        text: "Your people want to build a Great Tower.",
-        reqYear: 20,
-        a: { txt: "Build it", faith: 50, pop: -10, hp: -5, msg: "A monument to your glory." },
-        b: { txt: "Forbidden!", faith: -20, pop: 5, hp: 5, msg: "Resources saved." }
+        text: "A prophet claims to know the future.",
+        reqYear: 40,
+        a: { txt: "Bless Him", faith: 50, pop: 10, msg: "A golden age of belief." },
+        b: { txt: "Smite Him", faith: 10, pop: -5, msg: "There is only one God." }
     },
     {
-        text: "Gold is discovered in the river.",
-        reqYear: 20,
-        a: { txt: "Make Idols", faith: 40, pop: 0, hp: 0, msg: "Shiny statues everywhere." },
-        b: { txt: "Trade Route", faith: 0, pop: 20, hp: -5, msg: "Wealth brings outsiders." }
-    },
-
-    // --- LATE ERA EVENTS (After Year 50) ---
-    {
-        text: "Philosophers question your existence.",
-        reqYear: 50,
-        a: { txt: "Smite them", faith: 20, pop: -20, hp: -10, msg: "Fear restores order." },
-        b: { txt: "Perform Miracle", faith: -50, pop: 10, hp: 10, msg: "Belief is restored." }
-    },
-    {
-        text: "Industrial Revolution begins.",
-        reqYear: 50,
-        a: { txt: "Embrace Machines", faith: -30, pop: 100, hp: -30, msg: "Pollution rises, but so does life." },
-        b: { txt: "Stay Natural", faith: 50, pop: 10, hp: 10, msg: "Nature is preserved." }
+        text: "Your civilization discovers nuclear power.",
+        reqYear: 70,
+        a: { txt: "Build Bombs", pop: -20, isotopes: 5, msg: "Dangerous, but the Isotopes are valuable." },
+        b: { txt: "Build Plants", pop: 50, faith: -20, msg: "Unlimited energy!" }
     }
 ];
