@@ -2,381 +2,250 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>God Core: Evolution Engine</title>
+    <title>God Core: Evolution + Addons</title>
     <style>
         :root {
-            --bg: #020204;
-            --panel: #0a0a0f;
-            --accent: #00d2d3;
-            --rare: #a55eea;
-            --gold: #f1c40f;
-            --danger: #ff4757;
-            --text: #e0e0e0;
+            --bg: #020205; --panel: rgba(10, 10, 15, 0.9); --accent: #00d2d3;
+            --rare: #a55eea; --gold: #f1c40f; --danger: #ff4757; --text: #e0e0e0;
         }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg); color: var(--text);
+            font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
             margin: 0; height: 100vh; overflow: hidden; display: flex;
         }
 
-        /* --- SCREENS --- */
-        .screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg); display: flex; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 100;
-        }
-        .hidden { display: none !important; }
-
-        /* --- SKILL TREE --- */
-        .menu-container { display: flex; gap: 40px; width: 95%; max-width: 1200px; height: 85vh; }
-        .sidebar { flex: 0.8; display: flex; flex-direction: column; justify-content: center; }
-        .skill-tree { 
-            flex: 2; background: var(--panel); border: 1px solid #1a1a1a; 
-            padding: 30px; border-radius: 15px; overflow-y: auto;
-        }
-        .category-title { color: var(--accent); font-size: 0.75rem; letter-spacing: 2px; margin: 30px 0 10px; opacity: 0.5; text-transform: uppercase; }
-
-        .upgrade-item {
+        /* --- ADDON STORE STYLING --- */
+        .addon-section { margin-top: 30px; border-top: 1px solid #222; padding-top: 20px; }
+        .addon-card {
+            background: linear-gradient(45deg, #111, #050505);
+            border: 1px solid #333; padding: 10px; border-radius: 8px; margin-bottom: 10px;
             display: flex; justify-content: space-between; align-items: center;
-            padding: 15px; background: rgba(255,255,255,0.02); border: 1px solid #1a1a1a;
-            margin-bottom: 10px; border-radius: 8px;
         }
-        .level-dots { display: flex; gap: 5px; margin-top: 8px; }
-        .dot { width: 10px; height: 10px; background: #1a1a1a; border-radius: 2px; }
-        .dot.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        .addon-locked { opacity: 0.5; filter: grayscale(1); }
 
-        .buy-btn {
-            background: var(--accent); color: #000; border: none; padding: 10px 20px;
-            font-weight: 900; cursor: pointer; border-radius: 4px;
+        /* --- STABILIZATION MINIGAME --- */
+        #stabilize-ui {
+            position: absolute; top: 20%; left: 50%; transform: translateX(-50%);
+            z-index: 200; background: var(--danger); color: white; padding: 20px;
+            border-radius: 10px; text-align: center; box-shadow: 0 0 30px var(--danger);
+            animation: shake 0.2s infinite;
         }
-        .buy-btn:disabled { background: #222; color: #444; cursor: not-allowed; }
+        @keyframes shake { 0%{left:50.5%} 50%{left:49.5%} 100%{left:50%} }
 
-        /* --- GAMEPLAY CANVAS --- */
-        #game-screen { display: flex; width: 100%; }
-        #game-view { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        /* --- GRID & TILES --- */
+        .screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .hidden { display: none !important; }
+        .menu-container { display: flex; gap: 40px; width: 95%; max-width: 1200px; height: 85vh; }
+        .skill-tree { flex: 2; background: var(--panel); padding: 30px; border-radius: 20px; overflow-y: auto; border: 1px solid #222; }
         
-        #moon-phase { position: absolute; top: 30px; font-weight: bold; letter-spacing: 5px; color: #333; transition: 0.5s; }
-        .moon-glow { color: var(--gold) !important; text-shadow: 0 0 15px var(--gold); }
+        #grid-container { display: grid; grid-template-columns: repeat(3, 140px); transform: rotateX(50deg) rotateZ(-45deg); transform-style: preserve-3d; gap: 15px; }
+        .tile { width: 140px; height: 140px; border-radius: 8px; background-color: #0d0d12; transition: 0.4s; }
+        .tile.player { background-image: url('https://images.unsplash.com/photo-1449156003053-96462a6d3fe0?auto=format&fit=crop&w=200'); box-shadow: 0 0 15px var(--accent); }
+        .tile.rival { background-image: url('https://images.unsplash.com/photo-1536431311719-398b6704d40f?auto=format&fit=crop&w=200'); filter: hue-rotate(-70deg); }
+        .tile.empty { opacity: 0.1; background-image: url('https://images.unsplash.com/photo-1500382017468-9049fee74a62?auto=format&fit=crop&w=200'); }
 
-        /* NAVIGATION */
-        .nav-btn {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            background: rgba(255,255,255,0.03); border: 1px solid #222;
-            color: #fff; padding: 30px 15px; cursor: pointer; font-size: 2rem; z-index: 10;
-        }
-        .nav-btn:hover { background: var(--accent); color: #000; }
-        #nav-l { left: 40px; } #nav-r { right: 40px; }
-
-        /* THE 3x3 GRID */
-        #grid-container {
-            display: grid; grid-template-columns: repeat(3, 130px);
-            transform: rotateX(50deg) rotateZ(-45deg);
-            transform-style: preserve-3d; gap: 12px;
-        }
-        .tile {
-            width: 130px; height: 130px; background-size: cover; border-radius: 5px;
-            transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); background-color: #0a0a0f;
-        }
-        .tile.empty { background-image: url('https://images.unsplash.com/photo-1500382017468-9049fee74a62?auto=format&fit=crop&w=200&q=60'); opacity: 0.15; }
-        .tile.player { background-image: url('https://images.unsplash.com/photo-1449156003053-96462a6d3fe0?auto=format&fit=crop&w=200&q=60'); box-shadow: inset 0 0 30px rgba(0,210,211,0.4); }
-        .tile.rival { background-image: url('https://images.unsplash.com/photo-1536431311719-398b6704d40f?auto=format&fit=crop&w=200&q=60'); filter: hue-rotate(-60deg) saturate(2.5); border: 2px solid var(--danger); }
-
-        /* GOD EYE BAR (PREVIEW) */
-        #god-eye-bar {
-            position: absolute; bottom: 30px; display: flex; gap: 15px;
-            background: rgba(0,0,0,0.6); padding: 10px; border-radius: 10px;
-            border: 1px solid #222; opacity: 0; pointer-events: none; transition: 0.5s;
-        }
-        .preview-chunk { width: 40px; height: 40px; background: #111; border: 1px solid #333; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; padding: 2px; }
-        .p-dot { width: 100%; height: 100%; border-radius: 1px; background: #222; }
-        .p-dot.p { background: var(--accent); }
-        .p-dot.r { background: var(--danger); }
-
-        /* HUD SIDEBAR */
-        #sidebar { width: 340px; background: var(--panel); border-left: 1px solid #1a1a1a; padding: 25px; display: flex; flex-direction: column; }
-        .hud-card { background: #000; padding: 15px; border-radius: 8px; border: 1px solid #151515; margin-bottom: 10px; }
-        .hud-card small { font-size: 0.6rem; color: #555; text-transform: uppercase; letter-spacing: 1px; }
-        .hud-card div { font-size: 1.3rem; font-weight: 900; }
-
-        #event-log { flex: 1; overflow: hidden; display: flex; flex-direction: column-reverse; gap: 10px; margin-top: 20px; }
-        .event-msg { padding: 12px; background: rgba(255,255,255,0.02); border-left: 3px solid var(--accent); font-size: 0.75rem; line-height: 1.4; animation: slide 0.3s forwards; }
-        @keyframes slide { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-
+        #sidebar { width: 350px; background: var(--panel); border-left: 1px solid #222; padding: 25px; display: flex; flex-direction: column; }
+        .buy-btn { background: var(--accent); color: #000; border: none; padding: 10px; font-weight: 800; cursor: pointer; border-radius: 5px; }
+        .buy-btn:disabled { background: #222; color: #555; }
     </style>
 </head>
 <body>
 
     <div id="menu-screen" class="screen">
         <div class="menu-container">
-            <div class="sidebar">
-                <h1 style="font-size: 4rem; margin: 0; line-height: 0.9;">PLANET<br><span style="color:var(--accent)">CORE</span></h1>
-                <div style="margin: 30px 0;">
-                    <small style="opacity:0.4; text-transform: uppercase;">Isotope Reserves</small>
-                    <div style="font-size: 2.5rem; color: var(--rare); font-weight: 900;" id="meta-isotopes">0 ⚛</div>
-                </div>
-                <button class="buy-btn" style="width: 100%; padding: 25px; font-size: 1.3rem;" onclick="startGame()">INITIATE SIMULATION</button>
-            </div>
-
-            <div class="skill-tree">
-                <div class="category-title">Survival Skills (Enables Growth)</div>
-                <div id="tree-survival"></div>
+            <div style="flex:0.8;">
+                <h1 style="font-size: 3rem;">GOD<span style="color:var(--accent)">CORE</span></h1>
+                <div style="font-size: 2rem; color: var(--rare);" id="meta-isotopes">0 ⚛</div>
+                <button class="buy-btn" style="width:100%; padding:20px; margin-top:20px;" onclick="window.startGame()">START CYCLE</button>
                 
-                <div class="category-title">Global Expansion</div>
+                <div class="addon-section">
+                    <div class="category-title">Addon Marketplace</div>
+                    <div id="addon-list"></div>
+                </div>
+            </div>
+            <div class="skill-tree">
+                <div id="tree-survival"></div>
                 <div id="tree-expansion"></div>
-
-                <div class="category-title">Divine Technology</div>
                 <div id="tree-celestial"></div>
             </div>
         </div>
     </div>
 
     <div id="game-screen" class="screen hidden">
-        <div id="game-view">
-            <div id="moon-phase">MOON PHASE: NORMAL</div>
-            
-            <button id="nav-l" class="nav-btn" onclick="nav(-1)">◂</button>
+        <div id="stabilize-ui" class="hidden">
+            <h3>CORE INSTABILITY!</h3>
+            <button class="buy-btn" style="background:white;" onclick="window.stabilize()">CLICK TO STABILIZE</button>
+            <div id="stab-timer" style="margin-top:10px;">3.0s</div>
+        </div>
+
+        <div id="game-view" style="flex:1; display:flex; align-items:center; justify-content:center;">
             <div id="grid-container"></div>
-            <button id="nav-r" class="nav-btn" onclick="nav(1)">▸</button>
-            
-            <div id="god-eye-bar"></div>
         </div>
 
         <div id="sidebar">
-            <div class="hud-card"><small>Chronology (Years Left)</small><div id="ui-year">0</div></div>
-            <div class="hud-card"><small>Global Census</small><div id="ui-pop">0</div></div>
-            <div class="hud-card"><small>Divine Faith</small><div id="ui-faith">0</div></div>
-            <div class="hud-card"><small>Current Sector</small><div id="ui-sector">0 / 4</div></div>
-
-            <div id="event-log"></div>
-            <button class="buy-btn" style="background: var(--danger); color: white; margin-top: 15px;" onclick="smite()">DIVINE SMITE (50 F)</button>
+            <div id="ui-year" style="font-size:2rem; font-weight:900;">30Y</div>
+            <div id="ui-pop">Pop: 10</div>
+            <div id="event-log" style="flex:1; margin-top:20px; font-size:0.8rem;"></div>
+            <button class="buy-btn" style="background:var(--danger); color:white;" onclick="window.smite()">SMITE (50 Faith)</button>
         </div>
     </div>
 
     <script type="module">
         import { events } from './events.js';
 
-        // --- META DATA ---
-        let meta = JSON.parse(localStorage.getItem('god_sim_final')) || {
+        let meta = JSON.parse(localStorage.getItem('god_sim_v6')) || {
             isotopes: 0,
-            levels: { fishing: 0, mining: 0, agri: 0, growth: 0, god_eye: 0, max_year: 0 }
+            levels: { fishing: 0, mining: 0, agri: 0, growth: 0, max_year: 0 },
+            addons: [], // Purchased addons
+            addonCount: 0
         };
 
-        const SKILLS = [
-            { id: 'fishing', cat: 'survival', name: 'Fishing', desc: 'Harvest the oceans. (+Growth)', base: 5 },
-            { id: 'mining', cat: 'survival', name: 'Mining', desc: 'Deep Earth resources. (+Growth)', base: 8 },
-            { id: 'agri', cat: 'survival', name: 'Agriculture', desc: 'Sustain large populations. (++)', base: 12 },
-            { id: 'growth', cat: 'expansion', name: 'Rapid Mitosis', desc: 'Colonize tiles faster.', base: 15 },
-            { id: 'max_year', cat: 'celestial', name: 'Chronos Buffer', desc: 'Cycle length +10 Years.', base: 20 },
-            { id: 'god_eye', cat: 'celestial', name: 'God Eye', desc: 'Unlock global sector previews.', base: 40 },
+        const ADDONS = [
+            { id: 'auto_smite', name: 'Auto-Smite', desc: 'Smites rivals automatically.' },
+            { id: 'faith_bank', name: 'Faith Bank', desc: 'Faith carries over between runs.' },
+            { id: 'deep_scan', name: 'Deep Scan', desc: 'Double isotopes found in events.' }
         ];
 
-        // --- SESSION STATE ---
-        let state = {
-            active: false, year: 0, maxYear: 30,
-            pop: 10, faith: 0, chunk: 0, moon: 'normal',
-            chunks: Array.from({length: 5}, () => Array(9).fill(0))
-        };
+        let state = { active: false, year: 0, maxYear: 30, pop: 10, faith: 20, chunk: 0, chunks: Array.from({length:5},()=>Array(9).fill(0)), stabActive: false };
 
-        // --- UI: MENU ---
-        function updateMenu() {
+        window.renderTree = () => {
             document.getElementById('meta-isotopes').innerText = meta.isotopes + " ⚛";
-            ['survival', 'expansion', 'celestial'].forEach(cat => {
-                const el = document.getElementById(`tree-${cat}`);
-                el.innerHTML = '';
-                SKILLS.filter(s => s.cat === cat).forEach(s => {
+            
+            // Render Skill Tree (Similar to before...)
+            const cats = ['survival', 'expansion', 'celestial'];
+            const skillData = [
+                {id:'fishing', cat:'survival', name:'Fishing', base:5},
+                {id:'mining', cat:'survival', name:'Mining', base:8},
+                {id:'agri', cat:'survival', name:'Agriculture', base:12}
+            ];
+            
+            cats.forEach(c => {
+                const el = document.getElementById(`tree-${c}`);
+                if(!el) return;
+                el.innerHTML = `<div class="category-title">${c.toUpperCase()}</div>`;
+                skillData.filter(s => s.cat === c).forEach(s => {
                     const lv = meta.levels[s.id] || 0;
                     const cost = s.base * (lv + 1);
-                    const div = document.createElement('div');
-                    div.className = 'upgrade-item';
-                    div.innerHTML = `
-                        <div>
-                            <strong>${s.name}</strong><br><small style="color:#666">${s.desc}</small>
-                            <div class="level-dots">${Array(5).fill(0).map((_,i)=>`<div class="dot ${i<lv?'active':''}"></div>`).join('')}</div>
-                        </div>
-                        <button class="buy-btn" ${lv>=5||meta.isotopes<cost?'disabled':''} onclick="window.buy('${s.id}',${cost})">
-                            ${lv>=5 ? 'MAX' : cost+' ⚛'}
-                        </button>
-                    `;
-                    el.appendChild(div);
+                    el.innerHTML += `<div class="addon-card">
+                        <span>${s.name} (Lv ${lv})</span>
+                        <button class="buy-btn" ${meta.isotopes<cost?'disabled':''} onclick="window.buySkill('${s.id}',${cost})">${cost} ⚛</button>
+                    </div>`;
                 });
             });
-        }
 
-        window.buy = (id, cost) => {
+            // Render Addon Marketplace
+            const addonEl = document.getElementById('addon-list');
+            const addonCost = 100 * Math.pow(10, meta.addonCount);
+            addonEl.innerHTML = `<p>Next Addon Cost: <b style="color:var(--gold)">${addonCost.toLocaleString()} ⚛</b></p>`;
+            
+            ADDONS.forEach(a => {
+                const owned = meta.addons.includes(a.id);
+                addonEl.innerHTML += `
+                    <div class="addon-card ${owned ? '' : 'addon-locked'}">
+                        <div><b>${a.name}</b><br><small>${a.desc}</small></div>
+                        <button class="buy-btn" ${owned || meta.isotopes < addonCost ? 'disabled' : ''} onclick="window.buyAddon('${a.id}', ${addonCost})">
+                            ${owned ? 'OWNED' : 'BUY'}
+                        </button>
+                    </div>`;
+            });
+        };
+
+        window.buySkill = (id, cost) => { if(meta.isotopes >= cost) { meta.isotopes -= cost; meta.levels[id]++; save(); window.renderTree(); }};
+        
+        window.buyAddon = (id, cost) => {
             if(meta.isotopes >= cost) {
-                meta.isotopes -= cost; meta.levels[id]++;
-                localStorage.setItem('god_sim_final', JSON.stringify(meta));
-                updateMenu();
+                meta.isotopes -= cost;
+                meta.addons.push(id);
+                meta.addonCount++;
+                save();
+                window.renderTree();
             }
         };
 
-        // --- GAMEPLAY ENGINE ---
         window.startGame = () => {
-            state = {
-                active: true, year: 0,
-                maxYear: 30 + (meta.levels.max_year * 10),
-                pop: 10, faith: 20, chunk: 0, moon: 'normal',
-                chunks: Array.from({length: 5}, () => Array(9).fill(0))
-            };
-            state.chunks[0][4] = 1; // Start in Sector 0, Middle tile
-            
+            state.active = true; state.year = 0;
+            state.maxYear = 30 + (meta.levels.max_year * 10);
+            state.chunks = Array.from({length:5},()=>Array(9).fill(0));
+            state.chunks[0][4] = 1;
             document.getElementById('menu-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
-            document.getElementById('god-eye-bar').style.opacity = meta.levels.god_eye > 0 ? "1" : "0";
-            document.getElementById('event-log').innerHTML = '';
-            
-            tick();
+            gameTick();
         };
 
-        function tick() {
+        function gameTick() {
             if(!state.active) return;
             state.year++;
+            
+            // Addon Feature: Auto Smite
+            if(meta.addons.includes('auto_smite') && state.year % 5 === 0) window.smite();
 
-            // 1. Resource Math
-            state.faith += Math.floor(state.pop / 20);
-
-            // 2. Growth Logic (Survival Gating)
-            let growthRate = 0.01; // Base
-            growthRate += (meta.levels.fishing * 0.07) + (meta.levels.mining * 0.07) + (meta.levels.agri * 0.15);
-            if(state.moon === 'vitality') growthRate *= 2.5;
-
-            if(Math.random() < growthRate + (meta.levels.growth * 0.05)) expand(1); // Player
-            if(Math.random() < 0.12) expand(2); // Rival
-
-            // 3. Moon Cycles (Every 6 Years)
-            if(state.year % 6 === 0) {
-                const p = ['normal', 'vitality', 'luck', 'normal'];
-                state.moon = p[Math.floor(Math.random()*p.length)];
-                updateMoonUI();
-            }
-
-            // 4. Events (Localized + Global)
+            let growth = 0.02 + (meta.levels.fishing * 0.08) + (meta.levels.mining * 0.08) + (meta.levels.agri * 0.15);
+            if(Math.random() < growth) expand(1);
+            if(Math.random() < 0.12) expand(2);
             if(Math.random() < 0.15) triggerEvent();
 
-            updateUI();
-            renderGrid();
-            if(meta.levels.god_eye > 0) renderGodEye();
-
+            updateUI(); renderGrid();
             if(state.year >= state.maxYear) endGame();
-            else setTimeout(tick, 1000);
-        }
-
-        function expand(type) {
-            // Expansion can spill into adjacent sectors 20% of the time
-            let targetChunk = state.chunk;
-            if(Math.random() > 0.8) targetChunk = Math.floor(Math.random()*5);
-
-            const empties = state.chunks[targetChunk].map((t,i)=>t===0?i:-1).filter(i=>i!==-1);
-            if(empties.length) {
-                const idx = empties[Math.floor(Math.random()*empties.length)];
-                state.chunks[targetChunk][idx] = type;
-                if(type === 1) state.pop += 25;
-                else state.pop = Math.max(5, state.pop - 30);
-            }
+            else setTimeout(gameTick, 1000);
         }
 
         function triggerEvent() {
             const ev = events[Math.floor(Math.random()*events.length)];
-            const current = state.chunk;
-
-            // Stats
-            if(ev.impact.pop) state.pop += ev.impact.pop;
-            if(ev.impact.isotopes) { meta.isotopes += ev.impact.isotopes; localStorage.setItem('god_sim_final', JSON.stringify(meta)); }
-            if(ev.impact.faith) state.faith += ev.impact.faith;
-            if(ev.impact.moon) { state.moon = ev.impact.moon; updateMoonUI(); }
-
-            // Local Tile Transformation
-            if(ev.scope === 'local') {
-                if(ev.impact.tilesToPlayer) modifyTiles(current, 0, 1, ev.impact.tilesToPlayer);
-                if(ev.impact.tilesToEmpty) modifyTiles(current, 1, 0, ev.impact.tilesToEmpty);
-                if(ev.impact.tilesToRival) modifyTiles(current, 0, 2, ev.impact.tilesToRival);
-            }
-
-            const log = document.getElementById('event-log');
-            const div = document.createElement('div');
-            div.className = 'event-msg';
-            div.style.borderLeftColor = ev.style.split(':')[1];
-            div.innerHTML = `<strong>${ev.scope.toUpperCase()}:</strong> ${ev.text}`;
-            log.prepend(div);
-            if(log.children.length > 5) log.lastChild.remove();
+            if(ev.danger) startMinigame(ev);
+            else applyEvent(ev);
         }
 
-        function modifyTiles(cIdx, from, to, count) {
-            let done = 0;
-            for(let i=0; i<9; i++) {
-                if(state.chunks[cIdx][i] === from && done < count) {
-                    state.chunks[cIdx][i] = to; done++;
+        function startMinigame(ev) {
+            state.stabActive = true;
+            let time = 3.0;
+            const ui = document.getElementById('stabilize-ui');
+            ui.classList.remove('hidden');
+            
+            const timer = setInterval(() => {
+                time -= 0.1;
+                document.getElementById('stab-timer').innerText = time.toFixed(1) + "s";
+                if(!state.stabActive) { clearInterval(timer); ui.classList.add('hidden'); }
+                if(time <= 0) { 
+                    clearInterval(timer); ui.classList.add('hidden'); 
+                    applyEvent(ev); // Fail: apply damage
                 }
-            }
+            }, 100);
         }
 
-        window.nav = (dir) => {
-            state.chunk = Math.max(0, Math.min(4, state.chunk + dir));
-            renderGrid();
-            updateUI();
+        window.stabilize = () => { 
+            state.stabActive = false; 
+            const log = document.getElementById('event-log');
+            log.innerHTML = `<div style="color:var(--accent)">CORE STABILIZED!</div>` + log.innerHTML;
         };
 
-        window.smite = () => {
-            if(state.faith >= 50) {
-                state.faith -= 50;
-                state.chunks[state.chunk] = state.chunks[state.chunk].map(t => t===2?0:t);
-                renderGrid();
+        function applyEvent(ev) {
+            if(ev.impact.pop) state.pop += ev.impact.pop;
+            if(ev.impact.isotopes) { 
+                let gain = ev.impact.isotopes;
+                if(meta.addons.includes('deep_scan')) gain *= 2;
+                meta.isotopes += gain; save(); 
             }
-        };
-
-        function updateMoonUI() {
-            const el = document.getElementById('moon-phase');
-            el.innerText = "MOON PHASE: " + state.moon.toUpperCase();
-            el.className = state.moon !== 'normal' ? 'moon-glow' : '';
+            const log = document.getElementById('event-log');
+            log.innerHTML = `<div class="msg" style="${ev.style}">${ev.text}</div>` + log.innerHTML;
         }
 
-        function updateUI() {
-            document.getElementById('ui-year').innerText = (state.maxYear - state.year) + "Y";
-            document.getElementById('ui-pop').innerText = Math.floor(state.pop);
-            document.getElementById('ui-faith').innerText = state.faith;
-            document.getElementById('ui-sector').innerText = `${state.chunk} / 4`;
+        function expand(type) {
+            const empties = state.chunks[state.chunk].map((t,i)=>t===0?i:-1).filter(i=>i!==-1);
+            if(empties.length) state.chunks[state.chunk][empties[0]] = type;
         }
 
+        window.smite = () => { state.chunks[state.chunk] = state.chunks[state.chunk].map(t => t===2?0:t); renderGrid(); };
         function renderGrid() {
-            const grid = document.getElementById('grid-container');
-            grid.innerHTML = '';
-            state.chunks[state.chunk].forEach(type => {
-                const t = document.createElement('div');
-                t.className = `tile ${type===1?'player':(type===2?'rival':'empty')}`;
-                grid.appendChild(t);
-            });
+            const c = document.getElementById('grid-container'); c.innerHTML = '';
+            state.chunks[state.chunk].forEach(t => c.innerHTML += `<div class="tile ${t===1?'player':(t===2?'rival':'empty')}"></div>`);
         }
-
-        function renderGodEye() {
-            const bar = document.getElementById('god-eye-bar');
-            bar.innerHTML = '';
-            state.chunks.forEach((c, idx) => {
-                const p = document.createElement('div');
-                p.className = 'preview-chunk';
-                if(idx === state.chunk) p.style.borderColor = 'var(--accent)';
-                c.forEach(type => {
-                    const d = document.createElement('div');
-                    d.className = `p-dot ${type===1?'p':(type===2?'r':'')}`;
-                    p.appendChild(d);
-                });
-                bar.appendChild(p);
-            });
+        function updateUI() { 
+            document.getElementById('ui-year').innerText = (state.maxYear - state.year) + "Y";
+            document.getElementById('ui-pop').innerText = "Pop: " + Math.floor(state.pop);
         }
+        function save() { localStorage.setItem('god_sim_v6', JSON.stringify(meta)); }
+        function endGame() { state.active = false; alert("Cycle End"); location.reload(); }
 
-        function endGame() {
-            state.active = false;
-            let earned = Math.floor(state.pop / 50);
-            if(state.moon === 'luck') earned += 3;
-            meta.isotopes += earned;
-            localStorage.setItem('god_sim_final', JSON.stringify(meta));
-            alert(`CYCLE END\nTotal Population: ${Math.floor(state.pop)}\nIsotopes Gathered: ${earned}`);
-            document.getElementById('game-screen').classList.add('hidden');
-            document.getElementById('menu-screen').classList.remove('hidden');
-            updateMenu();
-        }
-
-        updateMenu();
+        window.renderTree();
     </script>
 </body>
-            </html>
+    </html>
